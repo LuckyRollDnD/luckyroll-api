@@ -1,5 +1,4 @@
-import { Length, MaxLength } from "class-validator";
-import { Field, InputType, Int, ObjectType } from "type-graphql";
+import { Field, Int, ObjectType } from "type-graphql";
 import {
 	Entity,
 	PrimaryGeneratedColumn,
@@ -16,7 +15,6 @@ import { User } from "./User";
 @ObjectType()
 @Entity("game_sessions")
 export class GameSession extends BaseEntity {
-	
 	@Field(() => Int)
 	@PrimaryGeneratedColumn()
 	id: number;
@@ -25,11 +23,11 @@ export class GameSession extends BaseEntity {
 	@Column("text")
 	title: string;
 
-	@Field({nullable: true})
-	@Column("text", {nullable: true})
+	@Field({ nullable: true })
+	@Column("text", { nullable: true })
 	description: string;
-	
-  @Field()
+
+	@Field()
 	@Column("bool")
 	active: boolean;
 
@@ -40,26 +38,14 @@ export class GameSession extends BaseEntity {
 	@Field()
 	@UpdateDateColumn()
 	updatedAt: Date;
-	
 
-  @Field(() => [DiceRoll], {nullable: true})
-  @OneToMany(() => DiceRoll, (diceRoll) => diceRoll.gameSession, {cascade: true})
-  diceRolls: DiceRoll[];
-	
+	@Field(() => [DiceRoll], { nullable: true })
+	@OneToMany(() => DiceRoll, (diceRoll) => diceRoll.gameSession, {
+		cascade: true,
+	})
+	diceRolls: DiceRoll[];
+
 	@Field(() => User)
-	@ManyToOne(() => User, user => user.gameSessions)
+	@ManyToOne(() => User, (user) => user.gameSessions, { eager: true })
 	user: User;
-
-
-}
-
-@InputType()
-export class GameSessionInput {
-	@Field()
-	@MaxLength(30)
-	title: string;
-
-	@Field({ nullable: true })
-	@Length(10, 255)
-	description?: string;
 }

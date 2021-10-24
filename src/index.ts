@@ -12,26 +12,34 @@ import cookieParser from "cookie-parser";
 import { UserResolver } from "./resolvers/UserResolvers";
 import { GameSessionResolver } from "./resolvers/GameSessionResolver";
 import { refreshRequest } from "./utils/middlewareUtils";
+import { DiceResolver } from "./resolvers/DiceResolver";
+import { DiceRollResolver } from "./resolvers/DiceRollResolver";
 
 const port = 4000;
 (async () => {
 	const app = express();
 	const httpServer = http.createServer(app);
-	app.use(cors({
-		// origin: "http://localhost:19000",
-		origin: "*",
-		credentials: true
-	}))
+	app.use(
+		cors({
+			// origin: "http://localhost:19000",
+			origin: "*",
+			credentials: true,
+		})
+	);
 	app.use(cookieParser());
 	app.get("/", (_req, res) => res.send("hello"));
-	
-	
+
 	// refresh JWT
 	app.post("/refresh_token", refreshRequest);
 	// TypeORM connection to DB
 	await createConnection();
 	// APOLLO SERVER
-	const resolvers: any = [UserResolver, GameSessionResolver];
+	const resolvers: any = [
+		UserResolver,
+		GameSessionResolver,
+		DiceResolver,
+		DiceRollResolver,
+	];
 	const apolloServer = new ApolloServer({
 		schema: await buildSchema({ resolvers }),
 		plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
@@ -48,4 +56,3 @@ const port = 4000;
 		`🚀 Server ready at http://localhost:${port}${apolloServer.graphqlPath}`
 	);
 })();
-

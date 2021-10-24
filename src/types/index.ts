@@ -1,9 +1,9 @@
 export enum DieSides {
-  Four = "FOUR",
-  Six = "SIX",
-  Eight = "EIGHT",
-  Ten = "TEN",
-  Twelve = "TWELVE",
-  Twenty = "TWENTY",
-  OneHundred = "ONE_HUNDRED"
+  Four = 4,
+  Six = 6,
+  Eight = 8,
+  Ten = 10,
+  Twelve = 12,
+  Twenty = 20,
+  OneHundred = 100
 }

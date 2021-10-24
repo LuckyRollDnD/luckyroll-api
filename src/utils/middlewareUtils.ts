@@ -31,3 +31,4 @@ export async function refreshRequest(req: Request, res: Response) {
 
 	return res.send({ ok: true, accessToken: createAccessToken(user) });
 }
+

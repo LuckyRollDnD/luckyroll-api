@@ -1,50 +1,55 @@
 import {
 	Arg,
 	Ctx,
+	Field,
+	InputType,
 	Mutation,
 	Query,
 	Resolver,
 	UseMiddleware,
 } from "type-graphql";
-import { ObjectID } from "typeorm";
 
 import { isAuth } from "../utils/auth";
-import {
-	GameSession,
-	GameSessionInput,
-} from "../entity/GameSession";
+import { GameSession } from "../entity/GameSession";
 import { MyContext } from "../interfaces/MyContext";
-import { User } from "../entity/User";
+import { getUser } from "./helpers";
+import { MaxLength, Length } from "class-validator";
 
+
+@InputType()
+export class GameSessionInput {
+	@Field()
+	@MaxLength(30)
+	title: string;
+
+	@Field({ nullable: true })
+	@Length(10, 255)
+	description?: string;
+}
 @Resolver()
 export class GameSessionResolver {
+	@Query(() => [GameSession])
+	@UseMiddleware(isAuth)
+	// get user's gamesessions.
+	async gameSessions(@Ctx() { payload }: MyContext) {
+		const userId = payload!.userId;
+		const user = await getUser(userId);
 
-  @Query(() => [GameSession])
-  @UseMiddleware(isAuth)
-  // get user's gamesessions.
-  async gameSessions(
-    @Ctx() { payload }: MyContext
-  ) {
-    
-    const userId = payload!.userId;
-    const user = await getUser(userId);
-  
-    if (!user.gameSessions.length) {
-      console.log("User does not have any GameSessions.");
-      return [];
-    }
-    return user.gameSessions;
-  }
-
-
+		if (!user.gameSessions.length) {
+			console.log("User does not have any GameSessions.");
+			return [];
+		}
+		return user.gameSessions;
+	}
 
 	@Query(() => GameSession)
 	@UseMiddleware(isAuth)
 	async gameSession(@Arg("gameSessionId") gameSessionId: string) {
 		try {
-			const gameSession = await GameSession.findOne(
-				new ObjectID(gameSessionId)
-			);
+			const gameSession = await GameSession.findOne({
+				where: { id: gameSessionId },
+			});
+			console.log({ gameSession });
 			if (!gameSession) {
 				throw new Error("Could not find Game Session");
 			}
@@ -61,7 +66,7 @@ export class GameSessionResolver {
 		@Ctx() { payload }: MyContext
 	) {
 		try {
-      const userId = payload!.userId;
+			const userId = payload!.userId;
 			const user = await getUser(userId);
 			const filteredSessions = user.gameSessions.filter(
 				(session) => session.title === newGSData.title
@@ -74,6 +79,7 @@ export class GameSessionResolver {
 				user,
 				active: true,
 			});
+			console.log({ entity });
 			const newGameSession = await entity.save();
 
 			return newGameSession;
@@ -100,24 +106,10 @@ export class GameSessionResolver {
 	@Mutation(() => Boolean)
 	@UseMiddleware(isAuth)
 	async deleteGameSession(@Arg("id") id: string) {
-    const gameSession = await GameSession.findOne({ where: {id}});
-    if (!gameSession) throw new Error("Game Session Not Found!");
+		const gameSession = await GameSession.findOne({ where: { id } });
+		if (!gameSession) throw new Error("Game Session Not Found!");
 
-    await gameSession.remove();
-    return true;
-  }
-}
-
-
-async function getUser(id: string) {
-  const user = (await User.findOne({
-    where: { id },
-    relations: ["gameSessions"],
-  })) as User;
-  
-  if (!user) {
-    throw new Error("Could Not Find User!")
-  }
-
-  return user;
+		await gameSession.remove();
+		return true;
+	}
 }
